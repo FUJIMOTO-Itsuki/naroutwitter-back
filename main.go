@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -104,7 +105,11 @@ func postLoginHandler(c echo.Context) error {
 	user := User{}
 	err := db.Get(&user, "SELECT * FROM users WHERE Username=?", req.Username)
 	if err != nil {
-		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error:%v", err))
+		if err == sql.ErrNoRows {
+			return c.NoContent(http.StatusForbidden)
+		} else {
+			return c.String(http.StatusInternalServerError, fmt.Sprintf("db error:%v", err))
+		}
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPass), []byte(req.Password))
@@ -122,7 +127,7 @@ func postLoginHandler(c echo.Context) error {
 	}
 	sess.Values["userName"] = req.Username
 	sess.Save(c.Request(), c.Response())
-	return c.NoContent(http.StatusOK)
+	return c.NoContent(http.StatusNoContent)
 }
 func checkLogin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
