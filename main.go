@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -74,8 +75,19 @@ func postSignUpHandler(c echo.Context) error {
 	if count > 0 {
 		return c.String(http.StatusConflict, "User already exists.")
 	}
-
-	_, err = db.Exec("INSERT INTO users (Username,HashedPass) VALUES (?,?)", req.Username, hashedPass)
+	u, err := uuid.NewRandom()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("uuid error: %v", err))
+	}
+	uu := u.String()
+	err = db.Get(&count, "SELECT COUNT(*) FROM users WHERE ID=?", uu)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error while counting id: %v", err))
+	}
+	if count > 0 {
+		return c.String(http.StatusConflict, "uuid conflict. please try again.")
+	}
+	_, err = db.Exec("INSERT INTO users (ID,Username,HashedPass,Status) VALUES (?,?,?,?)", uu, req.Username, hashedPass, "Alive")
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error while inserting: %v", err))
 	}
