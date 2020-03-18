@@ -51,8 +51,10 @@ type LoginRequestBody struct {
 	Password string `json:"password,omitempty" form:"password"`
 }
 type User struct {
+	Id         string `json:"-" db:"ID"`
 	Username   string `json:"username,omitempty" db:"Username"`
 	HashedPass string `json:"-" db:"HashedPass"`
+	Status     string `json:"-" db:"Status"`
 }
 
 func postSignUpHandler(c echo.Context) error {
@@ -99,7 +101,7 @@ func postLoginHandler(c echo.Context) error {
 	c.Bind(&req)
 
 	user := User{}
-	err := db.Get(&user, "SELECT * FROM users WHERE username=?", req.Username)
+	err := db.Get(&user, "SELECT * FROM users WHERE Username=?", req.Username)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error:%v", err))
 	}
