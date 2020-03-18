@@ -89,7 +89,7 @@ func postSignUpHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, fmt.Sprintf("db error while counting id: %v", err))
 	}
 	if count > 0 {
-		return c.String(http.StatusConflict, "uuid conflict. please try again.")
+		return c.String(http.StatusInternalServerError, "server error(uuid conflict). please try again.")
 	}
 	_, err = db.Exec("INSERT INTO users (ID,Username,HashedPass,Status) VALUES (?,?,?,?)", uu, req.Username, hashedPass, "Alive")
 	if err != nil {
