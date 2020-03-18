@@ -36,6 +36,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(session.Middleware(store))
+	e.GET("/ping", pingHandler)
 	e.POST("/login", postLoginHandler)
 	e.POST("/signup", postSignUpHandler)
 
@@ -146,4 +147,8 @@ func getWhoAmIHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, Me{
 		Username: c.Get("userName").(string),
 	})
+}
+
+func pingHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "pong:ultrafastparrot:")
 }
